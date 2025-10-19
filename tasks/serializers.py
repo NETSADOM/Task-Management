@@ -1,13 +1,14 @@
 from rest_framework import serializers
 from django.utils import timezone
 from .models import Task
+from categories.models import Category
 from categories.serializers import CategorySerializer
 
 
 class TaskSerializer(serializers.ModelSerializer):
     category_details = CategorySerializer(source='category', read_only=True)
     category = serializers.PrimaryKeyRelatedField(
-        queryset=None,  # ✅ Changed from Category.objects.all() to None
+        queryset=Category.objects.all(),  # ✅ must not be None
         required=False,
         allow_null=True
     )
@@ -22,17 +23,6 @@ class TaskSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'completed_at']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        request = self.context.get('request')
-        # ✅ safely filter categories by the logged-in user, if available
-        if request and hasattr(request, 'user') and request.user.is_authenticated:
-            from categories.models import Category  # Import here to avoid circular import
-            self.fields['category'].queryset = Category.objects.filter(user=request.user)
-        else:
-            from categories.models import Category
-            self.fields['category'].queryset = Category.objects.none()
-
     def get_is_overdue(self, obj):
         """Return True if task is overdue and not completed."""
         if obj.due_date and obj.status != 'completed':
@@ -44,3 +34,12 @@ class TaskSerializer(serializers.ModelSerializer):
         if value and value < timezone.now():
             raise serializers.ValidationError("Due date cannot be in the past.")
         return value
+
+    def to_representation(self, instance):
+        """Customize output to show nested category details automatically."""
+        representation = super().to_representation(instance)
+        representation['category_details'] = (
+            CategorySerializer(instance.category).data
+            if instance.category else None
+        )
+        return representation
