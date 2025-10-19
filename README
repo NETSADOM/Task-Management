@@ -1,0 +1,30 @@
+The Task Management API is a backend system developed using Django and Django REST Framework (DRF).  
+It provides authenticated users with the ability to create, organize, and manage their tasks efficiently.  
+Each user has their own set of categories and tasks, ensuring complete data isolation and privacy.
+
+This project also includes comprehensive API documentation through Swagger UI for easy testing and interaction.
+
+This API is designed to help users manage their daily tasks by offering features such as:
+
+- Secure authentication using JSON Web Tokens (JWT)
+- Task categorization for better organization
+- User-specific access (users can only view and manage their own data)
+- Filtering, searching, and ordering of tasks
+- Automatic task status management (complete, incomplete, overdue)
+- Comprehensive API documentation with Swagger and Redoc
+
+## Key Features
+
+- Authentication: Secure login and token-based authentication system using JWT.
+- Task Management: Create, update, delete, and filter tasks.
+- Categories: Group related tasks into user-defined categories.
+- User Isolation: Each user’s data is private; no cross-access between users.
+- Overdue Tracking: Automatically detects and flags overdue tasks.
+- API Documentation: Built-in Swagger UI for exploring and testing endpoints.
+
+## Technology Stack
+
+- Framework: Django 5.x, Django REST Framework
+- Authentication: SimpleJWT
+- Documentation: drf-yasg (Swagger, Redoc)
+- Database: SQLite (default, easily replaceable with PostgreSQL or MySQL)
