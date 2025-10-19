@@ -1,14 +1,13 @@
 from rest_framework import serializers
 from django.utils import timezone
 from .models import Task
-from categories.models import Category
 from categories.serializers import CategorySerializer
 
 
 class TaskSerializer(serializers.ModelSerializer):
     category_details = CategorySerializer(source='category', read_only=True)
     category = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all(),   # ✅ provide a safe default queryset
+        queryset=None,  # ✅ Changed from Category.objects.all() to None
         required=False,
         allow_null=True
     )
@@ -27,8 +26,12 @@ class TaskSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         request = self.context.get('request')
         # ✅ safely filter categories by the logged-in user, if available
-        if request and hasattr(request, 'user'):
-            self.fields['category'].queryset = request.user.categories.all()
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            from categories.models import Category  # Import here to avoid circular import
+            self.fields['category'].queryset = Category.objects.filter(user=request.user)
+        else:
+            from categories.models import Category
+            self.fields['category'].queryset = Category.objects.none()
 
     def get_is_overdue(self, obj):
         """Return True if task is overdue and not completed."""
